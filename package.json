@@ -1,0 +1,30 @@
+{
+  "name": "reactProjectSkeleton",
+  "version": "1.0.0",
+  "description": "REACT, ES6, Babel, WebPack app skeleton",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/matkuscz/reactProjectSkeleton.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/matkuscz/reactProjectSkeleton/issues"
+  },
+  "homepage": "https://github.com/matkuscz/reactProjectSkeleton#readme",
+  "dependencies": {
+    "babel-core": "^6.13.2",
+    "babel-loader": "^6.2.4",
+    "babel-preset-es2015": "^6.13.2",
+    "babel-preset-react": "^6.11.1",
+    "react": "^15.3.0",
+    "react-dom": "^15.3.0",
+    "react-hot-loader": "^1.3.0",
+    "webpack": "^1.13.1"
+  }
+}

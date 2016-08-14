@@ -1,0 +1,197 @@
+Before you can start writing your first line of code in any software project, you must first install and configure your development environment. Setting up these software tools is often 90% of the battle. This process can be especially frustrating in web development due to the Web's loose, open nature and to the blistering pace of change in libraries, frameworks, and support tools. Trends change so fast that it's hard to keep up. In fact, this tutorial – like many of its kind – will probably be outdated in a few months, since the tools will have changed so much. I wrote it in December 2015, so take it with a grain of salt if too much time has elapsed before you read.
+
+[This guide is meant for intermediate-level developers. For a simpler guide, read Minimal fuss setup for getting started with React and JavaScript ES6.]
+
+In this article, I'll show you how to set up a practical and modern development environment to create web application frontends (i.e., user interfaces) using these now-popular tools:
+
+    React for building modular Web-based user interfaces
+    The ES6 version of JavaScript, which lets you define classes, modules, and use other powerful language constructs
+    Babel to ensure that your code runs in today's web browsers
+    Webpack to provide three conveniences:
+        bundles all of your code and dependencies into a single JavaScript file that you can reference from your HTML
+        automatically compiles your code and refreshes your web browser every time you save a file
+        allows you to import any third-party library installed via npm with a simple ES6 import statement
+
+I'm not a fan of adding complex and shiny tooling just for its own sake. But the above setup has made me much more productive and happier than coding in plain JavaScript. Here we go!
+
+Step 1: First make sure you have npm on your machine. Everything in the modern JavaScript ecosystem uses npm. Read the installation instructions and get to know npm well!
+
+Step 2: Make a new directory for your app, cd inside, and run npm to install the necessary tools.
+
+npm init --yes # creates a blank package.json file
+
+# can write all on one line. --save will save all
+# installed dependencies to your package.json
+npm install --save \
+  react \
+  react-dom \
+  babel-core \
+  babel-loader \
+  babel-preset-es2015 \
+  babel-preset-react \
+  react-hot-loader \
+  webpack
+
+# needs to be global (-g) so you can run it
+npm install -g webpack-dev-server
+
+If all goes well, after a few minutes, all of these dependencies will be installed in the node_modules/ subdirectory and take up ~300MB. This guide assumes that you're using the most recent versions as of December 2015. Crucially, it uses Babel 6, which differs from Babel 5 in significant ways. For reference, here are the versions of all dependencies in my package.json:
+
+"dependencies": {
+  "babel-core": "^6.3.26",
+  "babel-loader": "^6.2.0",
+  "babel-preset-es2015": "^6.3.13",
+  "babel-preset-react": "^6.3.13",
+  "react": "^0.14.3",
+  "react-dom": "^0.14.3",
+  "react-hot-loader": "^1.3.0",
+  "webpack": "^1.12.9",
+}
+
+What does each dependency do?
+
+    react, react-dom – the React library
+    babel-core – the Babel tool
+    babel-preset-es2015 – Babel plugin for translating ES6 JavaScript (also confusingly known as es2015) into ES5 JavaScript that runs in most of today's web browsers
+    babel-preset-react – Babel plugin for translating React's JSX JavaScript syntax extensions into ES5 JavaScript
+    webpack – the Webpack tool
+    babel-loader – makes Webpack work with Babel
+    webpack-dev-server (not shown, installed globally), react-hot-loader – allows you to test your app and auto-refreshes your browser whenever you save a file
+
+(OMG LOL! Just minutes after I published this article, someone sent me a link to a newer setup with a reference to how react-hot-loader is now outdated! Well it's not perfect, but it works for me for now. Oh wells, such is the bizarre state of modern web development. Moving on ...)
+
+Step 3: Create the following webpack.config.js file, which will set up Webpack to work with React and Babel:
+
+var path = require('path');
+module.exports = {
+  entry: './src/main.js',
+  output: {
+    filename: 'bundle.js'
+  },
+  // assumes all JavaScript files you edit will be in src/
+  // when importing from src/<file>.js, only need to specify as <file>
+  resolve: {
+    root: path.resolve('./src'), // must be absolute path
+    extensions: ['', '.js']
+  },
+  devtool: 'source-map', // source maps to ease debugging
+  module: {
+    loaders: [
+      {
+        // pre-process every *.js file (except for ones in
+        // node_modules/) with Babel:
+        test: /\.js$/,
+        exclude: /node_modules/,
+        loaders: [
+          'react-hot-loader', // auto-refreshes browser
+          // invokes Babel to translate React and ES6
+          'babel-loader?cacheDirectory&presets[]=react&presets[]=es2015'
+        ]
+      },
+    ]
+  }
+};
+
+Using the above config file, all of the React-ES6 JavaScript files you edit should go into a src/ subdirectory. Webpack will use Babel to translate those into plain ES5 JavaScript files and bundle them together into a single file called bundle.js.
+
+For the babel-loader step, cacheDirectory tells Babel to cache its intermediate results for speed, and the two presets[] tell Babel to translate React and ES6 (a.k.a. es2015) code, respectively.
+
+As Webpack, Babel, and React inevitably get upgraded in the future, this configuration file may need to change in subtle ways ... so good luck figuring that out!
+
+Step 4: Now create the following src/main.js file:
+
+// Use ES6 import syntax ...
+
+// Webpack will find these files in node_modules/
+import React from 'react';
+import ReactDOM from 'react-dom';
+
+// Webpack will find this file in src/helper_module.js
+import {PersonComponent} from 'helper_module';
+
+// Use React JSX syntax:
+ReactDOM.render(
+  <PersonComponent myName={"Philip"} myAge={32.5} />,
+  document.getElementById("exampleDiv")
+);
+
+This will be the main entry point into your web app, as specified in webpack.config.js. Note the special ES6 and React syntax. (Technically JSX doesn't need to be used with React, but people often use them together, so I refer to JSX as “React syntax.”)
+
+Then create this src/helper_module.js file:
+
+import React from 'react';
+
+// ES6 class syntax; 'export' makes this symbol public
+export class PersonComponent extends React.Component {
+  render() {
+    return (
+      <div>
+        <div>Name: {this.props.myName}</div>
+        <div>Age: {this.props.myAge}</div>
+      </div>
+    );
+  }
+}
+
+This file represents a helper module that your main.js file can import using ES6 syntax. You can add other modules in src/ as your project grows so that all of your code is cleanly separately.
+
+Finally create this test.html file in your app's top-level directory:
+
+<html>
+  <body>
+    <div id="exampleDiv"></div>
+    <!-- load bundle.js at the very bottom -->
+    <script src="bundle.js"></script>
+  </body>
+</html>
+
+Note that this HTML file references only a single JavaScript file: bundle.js. But where is this elusive file?!? It will be automatically generated by Webpack in the next step.
+
+Your app's directory structure should now look like:
+
+webpack.config.js  <-- adjust Webpack settings here
+test.html          <-- your app's HTML file
+src/               <-- all JavaScript code in here
+  main.js
+  helper_module.js
+package.json
+node_modules/      <-- dependencies installed by npm
+
+Step 5: Now start the Webpack development server by running this command in your app's top-level directory (where test.html lives):
+
+webpack-dev-server --hot --inline
+
+If all goes well, Webpack will invoke Babel to create a new bundle.js file, start up a local web server, and then allow you to visit this URL
+
+http://localhost:8080/test.html
+
+to see your new web app in action! (I've only tested on Google Chrome on a Mac so far.)
+
+Now whenever you edit any JavaScript file in src/, Webpack will automatically compile your code and refresh your web browser so that you can see the new changes.
+
+For example, edit src/main.js and change
+
+myName={"Philip"}
+
+to ...
+
+myName={"John"}
+
+After a few seconds of compiling, your browser should automatically refresh to show the new on-screen name as “John”. Congrats, now you're ready to write awesome React and ES6 code!
+
+Step 6 (optional): Let's say you want to use a third-party JavaScript library in your project. Instead of manually downloading and referencing it from your HTML file, you can simply npm install it and import it in your JavaScript code. Webpack takes care of all the details!
+
+For instance, let's say you wanted to use d3. In your app's top-level directory, run:
+
+npm install --save d3
+
+To use it in any JavaScript file, simply add one import line!
+
+import 'd3';
+
+// now you can use it!
+console.log(d3);
+
+Now you can access the d3 object in that file. This technique will work with any library that you install using npm, so it's super convenient.
+
+Step 7 (optional): I highly recommend installing the React developer tools to ease debugging. I use it within Google Chrome.
